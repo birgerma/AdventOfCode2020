@@ -1,6 +1,6 @@
 
 -module(main).
--export([main/1]).
+-export([main/1, string2charList/1]).
 
 main([NStr]) ->
     io:fwrite("File name: ~s \n", [NStr]),
@@ -11,6 +11,10 @@ main([NStr]) ->
 readlines(Fname)->
     {ok, Raw_Data} = file:read_file(Fname),
     binary:split(Raw_Data, [<<"\n">>], [global]).
+
+string2charList(Str)->
+    List = re:split(Str,""),
+    lists:reverse(tl(lists:reverse(List))).
 
 print_list([])-> [];
 print_list([H|T]) ->
