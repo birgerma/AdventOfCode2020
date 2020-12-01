@@ -5,7 +5,6 @@
 sol1(Fname) ->
     io:fwrite("File name: ~s \n", [Fname]),
     Data = stringList2IntList(readlines(Fname)),
-    io:fwrite("Here I am! ~n", []),
     Res = findPairSum(Data, 2020),
     io:fwrite("Answear: ~p~n", [Res]).
 
