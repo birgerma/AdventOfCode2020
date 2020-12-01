@@ -1,6 +1,6 @@
 
 -module(main).
--export([main/1, string2charList/1, string2int/1, computeNumberSum/1]).
+-export([main/1, string2charList/1, string2int/1, computeDigitSum/1]).
 
 main([NStr]) ->
     io:fwrite("File name: ~s \n", [NStr]),
@@ -8,12 +8,12 @@ main([NStr]) ->
     %% print_list(Data),
     halt().
 
-computeNumberSum(Int)->
+computeDigitSum(Int)->
     io:format("Compute sum~n", []),
-    computeNumberSum(Int, 0).
-computeNumberSum(0, Sum)-> Sum;
-computeNumberSum(Int, Sum)->
-    computeNumberSum(Int div 10, Sum+(Int rem 10)).
+    computeDigitSum(Int, 0).
+computeDigitSum(0, Sum)-> Sum;
+computeDigitSum(Int, Sum)->
+    computeDigitSum(Int div 10, Sum+(Int rem 10)).
 
 readlines(Fname)->
     {ok, Raw_Data} = file:read_file(Fname),
