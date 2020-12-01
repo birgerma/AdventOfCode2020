@@ -1,6 +1,6 @@
 
 -module(main).
--export([main/1, string2charList/1, string2int/1, computeDigitSum/1]).
+-export([main/1, string2charList/1, string2int/1, computeDigitSum/1, stringList2IntList/1, computeListDigitSum/1]).
 
 main([NStr]) ->
     io:fwrite("File name: ~s \n", [NStr]),
@@ -8,8 +8,20 @@ main([NStr]) ->
     %% print_list(Data),
     halt().
 
+computeListDigitSum(List) ->
+    computeListDigitSum(List, []).
+computeListDigitSum([], Result)->lists:reverse(Result);
+computeListDigitSum([H|T], Result)->
+    computeListDigitSum(T, [[H,computeDigitSum(H)]|Result]).
+
+stringList2IntList(List)->
+    stringList2IntList(List, []).
+stringList2IntList([], Result)->lists:reverse(Result);
+stringList2IntList([H|T], Result)->
+    stringList2IntList(T, [list_to_integer(H)|Result]).
+    
+
 computeDigitSum(Int)->
-    io:format("Compute sum~n", []),
     computeDigitSum(Int, 0).
 computeDigitSum(0, Sum)-> Sum;
 computeDigitSum(Int, Sum)->
