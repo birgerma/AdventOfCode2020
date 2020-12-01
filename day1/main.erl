@@ -1,6 +1,6 @@
 
 -module(main).
--export([main/1, string2charList/1, string2int/1, computeDigitSum/1, stringList2IntList/1, computeListDigitSum/1, readlines/1, findPairSum/2, sol1/1]).
+-export([string2charList/1, string2int/1, computeDigitSum/1, stringList2IntList/1, computeListDigitSum/1, readlines/1, findPairSum/2, sol1/1, sol2/1]).
 
 sol1(Fname) ->
     io:fwrite("File name: ~s \n", [Fname]),
@@ -8,16 +8,35 @@ sol1(Fname) ->
     Res = findPairSum(Data, 2020),
     io:fwrite("Answear: ~p~n", [Res]).
 
+sol2(Fname) ->
+    io:fwrite("File name: ~s \n", [Fname]),
+    Data = stringList2IntList(readlines(Fname)),
+    Res = findTrippleSum(Data, 2020),
+    io:fwrite("Answear: ~p~n", [Res]).
+
 findPairSum(List,Expected)->
     findPairSum(List, List, Expected).
 findPairSum([H1|_],[H2|_], Expected) when H1+H2==Expected ->
     io:fwrite("~1p * ~1p~n",[H1, H2]),
     H1*H2;
-findPairSum([],[],Expected) -> -1;
+findPairSum([],[],_) -> -1;
 findPairSum([H|T], [], Expected) -> findPairSum(T, [H|T], Expected);
-findPairSum(List, [H|T], Expected) -> 
+findPairSum(List, [_|T], Expected) -> 
     %% io:fwrite("Left Head: ~1p~n",[H]),
     findPairSum(List, T, Expected).
+
+
+findTrippleSum(List,Expected)->
+    findTrippleSum(List, List, List, Expected).
+findTrippleSum([H1|_],[H2|_], [H3|_], Expected) when H1+H2+H3==Expected ->
+    io:fwrite("~1p * ~1p * ~1p ~n",[H1, H2, H3]),
+    H1*H2*H3;
+findTrippleSum([],[],[], _) -> -1;
+findTrippleSum([H|T], [], List, Expected) -> findTrippleSum(T, [H|T], List,  Expected);
+findTrippleSum(List, [H|T], [], Expected) -> findTrippleSum(List, T, List, Expected);
+findTrippleSum(List1, List2, [H|T], Expected) -> 
+    %% io:fwrite("Left Head: ~1p~n",[H]),
+    findTrippleSum(List1, List2, T, Expected).
 
 
 computeListDigitSum(List) ->
