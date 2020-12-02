@@ -1,79 +1,63 @@
 -module(day2).
 -compile(export_all).
 
-sol1()->
+main()->
     Fname="input1.txt",
     Lines=readlines(Fname),
-    PwdPolityList = splitPasswordPolies(Lines),
-    NCorrect = countcorrectpasswords(PwdPolityList),
-    io:fwrite("Solution 1: ~p~n",[NCorrect]).
+    Data = formatInput(Lines),
+    io:fwrite("Solution 1: ~p~n",[sol1(Data)]),
+    io:fwrite("Solution 2: ~p~n",[sol2(Data)]).
 
-sol2()->
-    Fname="input1.txt",
-    %% Fname="example.txt",
-    Lines=readlines(Fname),
-    PwdPolityList = splitPasswordPolies(Lines),
-    NCorrect = countcorrectpasswordsV2(PwdPolityList),
-    io:fwrite("Solution 2: ~p~n",[NCorrect]).
+sol1(Data)->
+    Validated = lapply(fun(H) -> passwordPolicy(H) end, Data),
+    countBool(Validated).
 
-countcorrectpasswords(PwdPolityList)->
-        countcorrectpasswords(PwdPolityList, 0).
-countcorrectpasswords([], Count) -> Count;
-countcorrectpasswords([H|T], Count) -> 
-    IsCorrect = verifyPasswordPolicy(H),
-    if
-	IsCorrect ->
-	    countcorrectpasswords(T, Count+1);
-	true -> 
-	    countcorrectpasswords(T, Count)
-    end.
+sol2(Data)->
+    Validated = lapply(fun(H) -> passwordPolicy2(H) end, Data),
+    countBool(Validated).
 
-countcorrectpasswordsV2(PwdPolityList)->
-        countcorrectpasswordsV2(PwdPolityList, 0).
-countcorrectpasswordsV2([], Count) -> Count;
-countcorrectpasswordsV2([H|T], Count) -> 
-    IsCorrect = verifyPasswordPolicyV2(H),
-    io:fwrite("~p ~p ~p ~n",[IsCorrect|H]),
-    if
-	IsCorrect ->
-	    countcorrectpasswordsV2(T, Count+1);
-	true -> 
-	    countcorrectpasswordsV2(T, Count)
-    end.
+countBool(List)->countBool(List, 0).
+countBool([], Count)->Count;
+countBool([H|T], Count) when H-> countBool(T,Count+1);
+countBool([_|T], Count) -> countBool(T,Count).
 
-verifyPasswordPolicy(PwdPolList) ->
-    verifyPassword(lists:nth(2, PwdPolList), lists:nth(1, PwdPolList)).
+lapply(F,List)->lapply(F, List,[]).
+lapply(_,[],Result)-> lists:reverse(Result);
+lapply(F, [H|T], Result) -> 
+    lapply(F, T, [F(H)|Result]).
 
-verifyPasswordPolicyV2(PwdPolList) ->
-    verifyPasswordV2(lists:nth(2, PwdPolList), lists:nth(1, PwdPolList)).
-
-verifyPassword(Pwd, RawPol)->
-    Pol=extractPolicyString(RawPol),
-    Count = countChar(Pwd,lists:nth(3,Pol)),
-    verifyPolicy(lists:nth(1,Pol), lists:nth(2,Pol), Count).
-
-verifyPasswordV2(Pwd, RawPol)->
-    Pol=extractPolicyString(RawPol),
+		   
+passwordPolicy(Input)->
+    Pwd = lists:nth(1,Input),
+    Pol = lists:nth(2,Input),
     Char = lists:nth(3,Pol),
-    verifyPolicyV2(lists:nth(1,Pol), lists:nth(2,Pol), Char, Pwd).
+    Count = countChar(Pwd,Char),
+    (Count>=lists:nth(1,Pol)) and (Count=<lists:nth(2,Pol)).
 
-verifyPolicy(MinStr, MaxStr, Count) ->
-    Min = list_to_integer(MinStr),
-    Max = list_to_integer(MaxStr),
-    (Count=<Max) and (Count>=Min).
+passwordPolicy2(Input)->
+    Pwd = lists:nth(1,Input),
+    Pol = lists:nth(2,Input),
+    Char = lists:nth(1,lists:nth(3,Pol)),
+    I1 = lists:nth(1,Pol),
+    I2 = lists:nth(2,Pol),
+    (lists:nth(I1,Pwd)==Char) xor (lists:nth(I2,Pwd)==Char).
 
-verifyPolicyV2(IndexStr1, IndexStr2, Char, Pwd) ->
-    I1 = list_to_integer(IndexStr1),
-    I2 = list_to_integer(IndexStr2),
-    C = lists:nth(1,Char),
-    (lists:nth(I1,Pwd)==C) xor (lists:nth(I2,Pwd)==C).
-								
+formatInput(InputList)->
+    formatInput(InputList, []).
+formatInput([], Result)-> lists:reverse(Result);
+formatInput([H|T], Result) ->
+    Pwd = extractPassword(H),
+    Policy = extractPolicy(H),
+    formatInput(T, [[Pwd, Policy]|Result]).
 
-extractPolicyString(PolStr)->
-    RawPol = split(PolStr," "),
-    Char = lists:nth(2,RawPol),
-    Limits = split(lists:nth(1,RawPol),"-"),
-    [lists:nth(1,Limits), lists:nth(2,Limits), Char].
+extractPassword(List)->
+    lists:nth(2,split(List,": ")).
+extractPolicy(List)->
+    PolStr=lists:nth(1,split(List,": ")),
+    PolList = split(PolStr," "),
+    Char = lists:nth(2,PolList),
+    LimitList = split(lists:nth(1,PolList),"-"),
+    [list_to_integer(lists:nth(1,LimitList)),list_to_integer(lists:nth(2,LimitList)),Char].
 
 countChar(Str, Char)-> countChar(split(Str,""), Char, 0).
 countChar([], Char, Count)-> Count;
@@ -81,27 +65,6 @@ countChar([H|T], Char, Count) when H==Char -> countChar(T, Char, Count+1);
 countChar([H|T], Char, Count)-> 
     countChar(T, Char, Count).
 
-
-cleanPolicy(Pol) -> cleanPolicy(Pol, []).
-cleanPolicy([],Result) -> lists:reverse(Result); 
-cleanPolicy([H|T], Result) when H==""; H==" "; H=="-" -> cleanPolicy(T, Result);
-cleanPolicy([H|T],Result) -> cleanPolicy(T, [H|Result]). 
-
-splitPasswordPolicy(PwdPol)->
-    List = re:split(PwdPol,":"),
-    StringList=binList2StrList(List),
-    trimList(StringList).
-
-splitPasswordPolies(List)-> splitPasswordPolies(List,[]).
-splitPasswordPolies([],Result)-> lists:reverse(Result);
-splitPasswordPolies([H|T],Result)->
-    splitPasswordPolies(T,[splitPasswordPolicy(H)|Result]).
-
-trimList(List)->
-    trimList(List, []).
-trimList([], Result)-> lists:reverse(Result);
-trimList([H|T], Result)->
-    trimList(T, [string:trim(H)|Result]).
 
 removeEmptyLists(List)->removeEmptyLists(List,[]).
 removeEmptyLists([], Result)->lists:reverse(Result);
