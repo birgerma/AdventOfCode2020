@@ -1,11 +1,66 @@
 -module(day2).
 -compile(export_all).
 
+sol1()->
+    Fname="input1.txt",
+    Lines=readlines(Fname),
+    PwdPolityList = splitPasswordPolies(Lines),
+    NCorrect = countcorrectpasswords(PwdPolityList),
+    io:fwrite("Solution 1: ~p~n",[NCorrect]).
+
+countcorrectpasswords(PwdPolityList)->
+        countcorrectpasswords(PwdPolityList, 0).
+countcorrectpasswords([], Count) -> Count;
+countcorrectpasswords([H|T], Count) -> 
+    IsCorrect = verifyPasswordPolicy(H),
+    if
+	IsCorrect ->
+	    countcorrectpasswords(T, Count+1);
+	true -> 
+	    countcorrectpasswords(T, Count)
+    end.
+
+verifyPasswordPolicy(PwdPolList) ->
+    verifyPassword(lists:nth(2, PwdPolList), lists:nth(1, PwdPolList)).
+
+verifyPassword(Pwd, RawPol)->
+    Pol=extractPolicyString(RawPol),
+    Count = countChar(Pwd,lists:nth(3,Pol)),
+    verifyPolicy(lists:nth(1,Pol), lists:nth(2,Pol), Count).
+
+verifyPolicy(MinStr, MaxStr, Count) ->
+    Min = list_to_integer(MinStr),
+    Max = list_to_integer(MaxStr),
+    (Count=<Max) and (Count>=Min).
+								
+
+extractPolicyString(PolStr)->
+    RawPol = split(PolStr," "),
+    Char = lists:nth(2,RawPol),
+    Limits = split(lists:nth(1,RawPol),"-"),
+    [lists:nth(1,Limits), lists:nth(2,Limits), Char].
+
+countChar(Str, Char)-> countChar(split(Str,""), Char, 0).
+countChar([], Char, Count)-> Count;
+countChar([H|T], Char, Count) when H==Char -> countChar(T, Char, Count+1);
+countChar([H|T], Char, Count)-> 
+    countChar(T, Char, Count).
+
+
+cleanPolicy(Pol) -> cleanPolicy(Pol, []).
+cleanPolicy([],Result) -> lists:reverse(Result); 
+cleanPolicy([H|T], Result) when H==""; H==" "; H=="-" -> cleanPolicy(T, Result);
+cleanPolicy([H|T],Result) -> cleanPolicy(T, [H|Result]). 
 
 splitPasswordPolicy(PwdPol)->
     List = re:split(PwdPol,":"),
     StringList=binList2StrList(List),
     trimList(StringList).
+
+splitPasswordPolies(List)-> splitPasswordPolies(List,[]).
+splitPasswordPolies([],Result)-> lists:reverse(Result);
+splitPasswordPolies([H|T],Result)->
+    splitPasswordPolies(T,[splitPasswordPolicy(H)|Result]).
 
 trimList(List)->
     trimList(List, []).
@@ -13,10 +68,14 @@ trimList([], Result)-> lists:reverse(Result);
 trimList([H|T], Result)->
     trimList(T, [string:trim(H)|Result]).
 
-removeEmptyLists([[]|T])->
-    T;
-removeEmptyLists(List) -> List.
+removeEmptyLists(List)->removeEmptyLists(List,[]).
+removeEmptyLists([], Result)->lists:reverse(Result);
+removeEmptyLists([[]|T], Result)->removeEmptyLists(T,Result);
+removeEmptyLists([H|T], Result) -> removeEmptyLists(T,[H|Result]).
 
+
+split(Str, Split)->
+    removeEmptyLists(binList2StrList(re:split(Str,Split))).
 
 readlines(Fname)->
     {ok, Raw_Data} = file:read_file(Fname),
@@ -27,6 +86,6 @@ readlines(Fname)->
 binList2StrList(BinList)->
     binList2StrList(BinList, []).
 binList2StrList([], Result)->
-    Result;
+    lists:reverse(Result);
 binList2StrList([H|T], Result) ->
     binList2StrList(T, [unicode:characters_to_list(H)|Result]).
