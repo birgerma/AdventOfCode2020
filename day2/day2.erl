@@ -2,8 +2,16 @@
 -compile(export_all).
 
 
+splitPasswordPolicy(PwdPol)->
+    List = re:split(PwdPol,":"),
+    StringList=binList2StrList(List),
+    trimList(StringList).
 
-
+trimList(List)->
+    trimList(List, []).
+trimList([], Result)-> lists:reverse(Result);
+trimList([H|T], Result)->
+    trimList(T, [string:trim(H)|Result]).
 
 removeEmptyLists([[]|T])->
     T;
