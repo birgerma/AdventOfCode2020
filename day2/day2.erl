@@ -8,6 +8,14 @@ sol1()->
     NCorrect = countcorrectpasswords(PwdPolityList),
     io:fwrite("Solution 1: ~p~n",[NCorrect]).
 
+sol2()->
+    Fname="input1.txt",
+    %% Fname="example.txt",
+    Lines=readlines(Fname),
+    PwdPolityList = splitPasswordPolies(Lines),
+    NCorrect = countcorrectpasswordsV2(PwdPolityList),
+    io:fwrite("Solution 2: ~p~n",[NCorrect]).
+
 countcorrectpasswords(PwdPolityList)->
         countcorrectpasswords(PwdPolityList, 0).
 countcorrectpasswords([], Count) -> Count;
@@ -20,18 +28,49 @@ countcorrectpasswords([H|T], Count) ->
 	    countcorrectpasswords(T, Count)
     end.
 
+countcorrectpasswordsV2(PwdPolityList)->
+        countcorrectpasswordsV2(PwdPolityList, 0).
+countcorrectpasswordsV2([], Count) -> Count;
+countcorrectpasswordsV2([H|T], Count) -> 
+    IsCorrect = verifyPasswordPolicyV2(H),
+    io:fwrite("~p ~p ~p ~n",[IsCorrect|H]),
+    if
+	IsCorrect ->
+	    countcorrectpasswordsV2(T, Count+1);
+	true -> 
+	    countcorrectpasswordsV2(T, Count)
+    end.
+
 verifyPasswordPolicy(PwdPolList) ->
     verifyPassword(lists:nth(2, PwdPolList), lists:nth(1, PwdPolList)).
+
+verifyPasswordPolicyV2(PwdPolList) ->
+    verifyPasswordV2(lists:nth(2, PwdPolList), lists:nth(1, PwdPolList)).
 
 verifyPassword(Pwd, RawPol)->
     Pol=extractPolicyString(RawPol),
     Count = countChar(Pwd,lists:nth(3,Pol)),
     verifyPolicy(lists:nth(1,Pol), lists:nth(2,Pol), Count).
 
+verifyPasswordV2(Pwd, RawPol)->
+    Pol=extractPolicyString(RawPol),
+    %% Count = countChar(Pwd,lists:nth(3,Pol)),
+    Char = lists:nth(3,Pol),
+    verifyPolicyV2(lists:nth(1,Pol), lists:nth(2,Pol), Char, Pwd).
+
 verifyPolicy(MinStr, MaxStr, Count) ->
     Min = list_to_integer(MinStr),
     Max = list_to_integer(MaxStr),
     (Count=<Max) and (Count>=Min).
+
+verifyPolicyV2(IndexStr1, IndexStr2, Char, Pwd) ->
+    I1 = list_to_integer(IndexStr1),
+    I2 = list_to_integer(IndexStr2),
+    C = lists:nth(1,Char),
+    io:fwrite("i1=~p i2=~p Char=~p    ",[I1, I2, Char]),
+    io:fwrite("c1=~c c2=~c Char=~p    ",[lists:nth(I1,Pwd), lists:nth(I2,Pwd), Char]),
+    io:fwrite("c1=~p c2=~p Char=~p    ",[lists:nth(I1,Pwd)==C, lists:nth(I2,Pwd)==C, Char]),
+    (lists:nth(I1,Pwd)==C) xor (lists:nth(I2,Pwd)==C).
 								
 
 extractPolicyString(PolStr)->
