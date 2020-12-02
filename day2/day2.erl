@@ -54,7 +54,6 @@ verifyPassword(Pwd, RawPol)->
 
 verifyPasswordV2(Pwd, RawPol)->
     Pol=extractPolicyString(RawPol),
-    %% Count = countChar(Pwd,lists:nth(3,Pol)),
     Char = lists:nth(3,Pol),
     verifyPolicyV2(lists:nth(1,Pol), lists:nth(2,Pol), Char, Pwd).
 
@@ -67,9 +66,6 @@ verifyPolicyV2(IndexStr1, IndexStr2, Char, Pwd) ->
     I1 = list_to_integer(IndexStr1),
     I2 = list_to_integer(IndexStr2),
     C = lists:nth(1,Char),
-    io:fwrite("i1=~p i2=~p Char=~p    ",[I1, I2, Char]),
-    io:fwrite("c1=~c c2=~c Char=~p    ",[lists:nth(I1,Pwd), lists:nth(I2,Pwd), Char]),
-    io:fwrite("c1=~p c2=~p Char=~p    ",[lists:nth(I1,Pwd)==C, lists:nth(I2,Pwd)==C, Char]),
     (lists:nth(I1,Pwd)==C) xor (lists:nth(I2,Pwd)==C).
 								
 
