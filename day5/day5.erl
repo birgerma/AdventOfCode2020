@@ -4,20 +4,35 @@
 -import('tools', [readlines/1]).
 
 main()->
-    io:fwrite("Solution part1: ~p~n",[sol1()]).
-    %% io:fwrite("Solution part2: ~p~n",[sol2()]).
+    io:fwrite("Solution part1: ~p~n",[sol1()]),
+    io:fwrite("Solution part2: ~p~n",[sol2()]).
     
-
-sol2()->
-    Fname="input".
 
 %% Correct: 892
 sol1()->
     Fname="input",
     Data = tools:readlines(Fname),
+    getMax(getSeatIds(Data),0).
+
+sol2()->
+    Fname="input",
+    Data = tools:readlines(Fname),
+    Ids = getSeatIds(Data),
+    findMissingIds(Ids).
+
+findMissingIds(Ids)->
+    findMissingId(lists:sort(Ids)).
+findMissingId([A,B|T]) when A==B-1 -> findMissingId([B|T]);
+findMissingId([A,B|_]) -> 
+    A+1.
+
+
+
+    
+
+getSeatIds(Data)->
     SeatData = getAllSeatData(Data, []),
-    Ids = extractListIndexes(SeatData, 3, []),
-    getMax(Ids,0).
+    extractListIndexes(SeatData, 3, []).
 
 getMax([], Max)-> Max;
 getMax([H|T],Max) when H>Max-> getMax(T,H);
