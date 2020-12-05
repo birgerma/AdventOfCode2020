@@ -4,22 +4,43 @@
 -import('tools', [readlines/1]).
 
 main()->
-    io:fwrite("Solution part1: ~p~n",[sol1()]),
-    io:fwrite("Solution part2: ~p~n",[sol2()]).
+    io:fwrite("Solution part1: ~p~n",[sol1()]).
+    %% io:fwrite("Solution part2: ~p~n",[sol2()]).
     
 
 sol2()->
     Fname="input".
 
-%% 30 not correct, 215 too low, 216 correct
+%% Correct: 892
 sol1()->
-    Fname="input".
+    Fname="input",
+    Data = tools:readlines(Fname),
+    SeatData = getAllSeatData(Data, []),
+    Ids = extractListIndexes(SeatData, 3, []),
+    getMax(Ids,0).
+
+getMax([], Max)-> Max;
+getMax([H|T],Max) when H>Max-> getMax(T,H);
+getMax([H|T],Max) -> getMax(T,Max).
+
+getAllSeatData([],Result)->
+    lists:reverse(Result);
+getAllSeatData([H|T], Result) ->
+    getAllSeatData(T, [getSeatData(H)|Result]).
+
 
 getSeatData(SeatStr)->
     Row = getSeatRow(SeatStr, 0, 127),
     Col = getSeatCol(SeatStr, 0, 7),
     Id = (Row*8)+Col,
-    io:fwrite("Seat: ~p,~p,~p~n",[Row, Col, Id]).
+    %% io:fwrite("Seat: ~p,~p,~p~n",[Row, Col, Id]),
+    [Row, Col, Id].
+
+extractListIndexes([],_,Result)->
+    lists:reverse(Result);
+extractListIndexes([H|T], Index, Result) -> 
+    extractListIndexes(T, Index, [lists:nth(Index,H)|Result]).
+
 
 getSeatRow([], Min, Max)-> Min;
 getSeatRow([$F|T], Min, Max)->
@@ -37,11 +58,11 @@ getSeatRow([H|T], Min, Max)->
 getSeatCol([], Min, Max)-> Min;
 getSeatCol([$L|T], Min, Max)->
     NewMax=Min+((Max-Min) div 2),
-    io:fwrite("Match R old=[~p ~p] new=[~p ~p] ~n",[Min, Max, Min, NewMax]),
+    %% io:fwrite("Match R old=[~p ~p] new=[~p ~p] ~n",[Min, Max, Min, NewMax]),
     getSeatCol(T,Min,NewMax);
 getSeatCol([$R|T], Min, Max)->
     NewMin=Min+((Max+1-Min) div 2),
-    io:fwrite("Match L old=[~p ~p] new=[~p ~p] ~n",[Min, Max, NewMin,  Max]),
+    %% io:fwrite("Match L old=[~p ~p] new=[~p ~p] ~n",[Min, Max, NewMin,  Max]),
     getSeatCol(T,NewMin,Max);
 getSeatCol([H|T], Min, Max)->
     %% io:fwrite("Check head=~c~n",[H]),
