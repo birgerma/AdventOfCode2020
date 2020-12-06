@@ -8,7 +8,7 @@ main()->
     io:fwrite("Solution part2: ~p~n",[sol2()]).
     
 
-%% Correct: 892
+%% Correct: 6782
 sol1()->
     Fname="input",
     Data = tools:readlines(Fname),
@@ -16,13 +16,13 @@ sol1()->
     UniqeGroupAns = getUniqueQuestionData(mergeGroupData(Answers,[]),[]),
     sum(getStringLengths(UniqeGroupAns,[]),0).
 
+%% Correct: 3596
 sol2()->
     Fname="input",
     Data = tools:readlines(Fname),
     Answers = getAnswearData(Fname),
     Common=findAllCommonAnswers(Answers,[]),
     sum(getStringLengths(Common,[]),0).
-    %% findCommonChars(lists:nth(1,Answers)).
 
 findCommon([],_, Result)-> Result;
 findCommon([H|T],List, Result)->
@@ -33,14 +33,12 @@ findCommon([H|T],List, Result)->
 	true ->
 	    findCommon(T,List,Result)
     end.
-    %% io:fwrite("Char:~p ~p ~n",[H,Head]).
 
 isCharInAll(Char, [])-> true;
 isCharInAll(Char, [H|T])-> 
     IsIn = lists:member(Char, H),
     if
 	IsIn ->
-	    %% io:fwrite("Char: ~p String:~p is in:~p~n",[Char,H,IsIn]),
 	    isCharInAll(Char,T);
 	true  ->
 	    false
@@ -55,19 +53,12 @@ getShortestString([H|T],Shortest) -> getShortestString(T,Shortest).
 
 findCommonChars(StringList)->
     Shortest = getShortestString(StringList,""),
-    Common = findCommon(Shortest, StringList,[]),
-    %% io:fwrite("Strings:~p~n",[StringList]),
-    %% io:fwrite("Shortest: ~p~n",[Shortest]),
-    %% io:fwrite("Common: ~p~n",[Common]),
-    Common.
-
+    findCommon(Shortest, StringList,[]).
 
 findAllCommonAnswers([],Result) -> lists:reverse(Result);
 findAllCommonAnswers([H|T],Result)->
     Common = findCommonChars(H),
-    io:fwrite("Answers:~p Common:~p~n",[H,Common]),
     findAllCommonAnswers(T,[Common|Result]).
-
 
 sum([],Sum)->
     Sum;
@@ -87,7 +78,6 @@ getUniqueChars("",Result)->
     lists:reverse(Result);
 getUniqueChars([H|T], [H|Result]) -> getUniqueChars(T,[H|Result]);
 getUniqueChars([H|T],Result) -> getUniqueChars(T,[H|Result]).
-
 
 mergeGroupData([],Result)->
     lists:reverse(Result);
