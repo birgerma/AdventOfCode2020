@@ -4,8 +4,17 @@
 -import('tools', [readlines/1]).
 
 main()->
-    io:fwrite("Solution part1: ~p~n",[sol1()]),
-    io:fwrite("Solution part2: ~p~n",[sol2()]).
+    Start1 = os:timestamp(),
+    Sol1 = sol1(),
+    Start2 = os:timestamp(),
+    Sol2 = sol2(),
+    EndTime = os:timestamp(),
+    Time1 = timer:now_diff(Start2, Start1)/1000000,
+    Time2 = timer:now_diff(EndTime, Start2)/1000000,
+    Total = timer:now_diff(EndTime, Start1)/1000000,
+    io:fwrite("Solution part1 (Time:~f sec): ~p~n", [Time1, Sol1]),
+    io:fwrite("Solution part2 (Time:~f sec): ~p~n", [Time2, Sol2]),
+    io:fwrite("Total execution time: ~f sec~n", [Total]).
     
 %% Correct: 245848639
 sol2()->
@@ -16,7 +25,7 @@ sol2()->
     {Pre, Rest} = lists:split(N, Numbers),
     Number = findFirstFalse(checkValidXmasList(Pre, Rest, [])),
     SumList = findConSum(Numbers, Number, [], 0),
-    MinMaxSum = lists:min(SumList)+lists:max(SumList).
+    lists:min(SumList)+lists:max(SumList).
     
 %% Correct: 2089807806 
 sol1()->
@@ -29,27 +38,27 @@ sol1()->
     {Pre, Rest} = lists:split(N, Numbers),
     %% io:fwrite("Pre:~p, Rest:~p~n",[Pre, Rest]),
     Result = checkValidXmasList(Pre, Rest, []),
-    Number = findFirstFalse(Result).
+    findFirstFalse(Result).
     %% {Preemble, NewTree} = popTree(N, Tree,[]),
     %% printTree(NewTree).
 
-findConSum(Numbers, Number, SubL, Sum) when Sum==Number->SubL;
+findConSum(_, Number, SubL, Sum) when Sum==Number->SubL;
 findConSum(Numbers, Number, SubL, Sum) when Sum<Number ->
     %% io:fwrite("Sum to small, list=~p~n",[SubL]),
     N=length(SubL)+1,
     List = lists:sublist(Numbers, N),
     findConSum(Numbers, Number, List, lists:sum(List));
-findConSum([H|T], Number, SubL, _) -> 
+findConSum([_|T], Number, SubL, _) -> 
     N=length(SubL)-1,
     List = lists:sublist(T, N),
     findConSum(T, Number, List, lists:sum(List)).
 				      
     
 
-findFirstFalse([{Ok, Num}|T]) when not Ok -> Num;
-findFirstFalse([H|T]) -> findFirstFalse(T). 
+findFirstFalse([{Ok, Num}|_]) when not Ok -> Num;
+findFirstFalse([_|T]) -> findFirstFalse(T). 
     
-checkValidXmasList(Pre, [], Result)-> lists:reverse(Result);
+checkValidXmasList(_, [], Result)-> lists:reverse(Result);
 checkValidXmasList([PreH|PreT], [H|T], Result) ->
     %% io:fwrite("Checking number:~p~n",[H]),
     Res = checkValid([PreH|PreT], H),
@@ -58,7 +67,7 @@ checkValidXmasList([PreH|PreT], [H|T], Result) ->
     
 
 checkValid([], _)->false;
-checkValid([H], _)->false;
+checkValid([_], _)->false;
 checkValid([H|T], Num) ->
     Compliment = Num-H,
     %% io:fwrite("Having ~p, Looking for ~p~n",[H,Compliment]),
@@ -70,24 +79,24 @@ checkValid([H|T], Num) ->
 	    checkValid(T, Num)
     end.
     
-popTree(N, Tree,Result) when N>length(Result)->
-    {_, Value, NewTree} = gb_trees:take_smallest(Tree),
-    popTree(N, NewTree, [Value|Result]);
-popTree(_, Tree, Result) ->
-    {lists:reverse(Result), Tree}.
+%% popTree(N, Tree,Result) when N>length(Result)->
+%%     {_, Value, NewTree} = gb_trees:take_smallest(Tree),
+%%     popTree(N, NewTree, [Value|Result]);
+%% popTree(_, Tree, Result) ->
+%%     {lists:reverse(Result), Tree}.
 
-printTree(Tree) ->
-    IsEmpty = gb_trees:is_empty(Tree),
-    printTree(Tree, IsEmpty).
-printTree(Tree, IsEmpty) when IsEmpty->io:fwrite("Tree is empty~n");
-printTree(Tree, _) ->
-    {_, Value, NewTree} = gb_trees:take_smallest(Tree),
-    io:fwrite("Next number:~p~n",[Value]),
-    printTree(NewTree).
+%% printTree(Tree) ->
+%%     IsEmpty = gb_trees:is_empty(Tree),
+%%     printTree(Tree, IsEmpty).
+%% printTree(Tree, IsEmpty) when IsEmpty->io:fwrite("Tree is empty~n");
+%% printTree(Tree, _) ->
+%%     {_, Value, NewTree} = gb_trees:take_smallest(Tree),
+%%     io:fwrite("Next number:~p~n",[Value]),
+%%     printTree(NewTree).
 
-createTree(List)->
-    createTree(List, gb_trees:empty()).
-createTree([], Tree)->
-    Tree;
-createTree([H|T],Tree) -> createTree(T, gb_trees:insert(H,H,Tree)).
+%% createTree(List)->
+%%     createTree(List, gb_trees:empty()).
+%% createTree([], Tree)->
+%%     Tree;
+%% createTree([H|T],Tree) -> createTree(T, gb_trees:insert(H,H,Tree)).
 
