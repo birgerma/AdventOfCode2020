@@ -1,4 +1,4 @@
--module(main).
+-module(main2).
 -compile(export_all).
 
 -import('tools', [readlines/1]).
@@ -25,10 +25,11 @@ main()->
     
 %% Correct: 
 sol2()->
-    Fname="example",
+    Fname="input",
     Data = tools:readlines(Fname),
-    SteadyState = findSteadyStateV2(Data,3).
-    %% countOccupied(SteadyState, 0).
+    %% printList(Data),
+    SteadyState = findSteadyState(Data,1000),
+    countOccupied(SteadyState, 0).
 
 %% Correct: 
 sol1()->
@@ -61,8 +62,8 @@ findSteadyState(State, 0)-> false;
 findSteadyState(State, It)->
     NextState = updateSeatStates(State,1,1,[],[]),
     IsEqual = isEqual(State, NextState),
-    %% io:fwrite("Round ~p:~n",[7-It]),
-    %% printList(State),
+    %% io:fwrite("Round ~p:~n",[It]),
+    %% printList(NextState),
     %% io:fwrite("Is equal:~p~n",[IsEqual]),
     if
 	IsEqual->
@@ -70,21 +71,6 @@ findSteadyState(State, It)->
 	true->
 	    findSteadyState(NextState, It-1)
     end.
-
-findSteadyStateV2(State, 0)-> false;
-findSteadyStateV2(State, It)->
-    NextState = updateSeatStatesV2(State,1,1,[],[]),
-    IsEqual = isEqual(State, NextState),
-    io:fwrite("Round ~p:~n",[7-It]),
-    printList(State),
-    io:fwrite("Is equal:~p~n",[IsEqual]),
-    if
-	IsEqual->
-	    State;
-	true->
-	    findSteadyStateV2(NextState, It-1)
-    end.
-
 
 getNextEntry(Seats, X,Y)->
     Entry = getRoomPosition(Seats, X,Y),
@@ -120,39 +106,11 @@ boolSum([_|T])-> boolSum(T).
 
     
 shouldBeFree(Seats, X, Y)->
-    boolSum(getSourundings(Seats,X,Y, $#))>=4.
-
-
-updateSeatStatesV2(Seats, X, Y, Row, Col) when Y>length(Seats)-> lists:reverse(Col);
-updateSeatStatesV2(Seats, X, Y, Row, Col)->
-    %% io:fwrite("~c",[lists:nth(X,lists:nth(Y,Seats))]),
-    MaxX = length(lists:nth(1,Seats)),
-    %% Occupy = shouldBeOccupied(Seats, X, Y),
-    %% io:fwrite("Should occupy:~p~n",[Occupy]),
-    NextEntry = getNextEntry(Seats, X,Y),
-    %% if 
-    %% 	Occupy->
-    %% 	    Entry = $#; %% Add occupy sym
-    %% 	true ->
-    %% 	    Entry = getRoomPosition(Seats, X,Y) %% Use current state
-    %% end,
-
-    if
-	X<MaxX->
-	    NextRow = [NextEntry|Row],
-	    NextCol = Col,
-	    NextX=X+1,
-	    NextY=Y;
-	true ->
-	    %% io:fwrite("~n"),
-	    NextRow = [],
-	    NextCol = [lists:reverse([NextEntry|Row])|Col],
-	    NextX=1,
-	    NextY=Y+1
-    end,
-    %% ok.
-    updateSeatStatesV2(Seats, NextX, NextY, NextRow, NextCol).
-
+    Sight = getSights(Seats, X,Y),
+    %% io:fwrite("(~p,~p) - Sights:~p N Occupied:~p~n",[X,Y,Sight, tools:countChar(Sight,$#)]),
+    %% boolSum(getFreeSights(Seats, X,Y))>=5.
+    tools:countChar(Sight,$#)>=5.
+    %% boolSum(getSourundings(Seats,X,Y, $#))>=5.
 
 updateSeatStates(Seats, X, Y, Row, Col) when Y>length(Seats)-> lists:reverse(Col);
 updateSeatStates(Seats, X, Y, Row, Col)->
@@ -185,6 +143,22 @@ updateSeatStates(Seats, X, Y, Row, Col)->
     updateSeatStates(Seats, NextX, NextY, NextRow, NextCol).
 
 
+
+isFreeSight(Seats, X,Y, _, _, Xmax, Ymax) when X<1;Y<1 -> true;
+isFreeSight(Seats, X,Y, _, _, Xmax, Ymax) when X>Xmax;Y>Ymax -> true;
+isFreeSight(Seats, X,Y, Xdir, Ydir, Xmax, Ymax)->
+    IsFloor = (getRoomPosition(Seats, X,Y)==$.),
+    IsFree = (getRoomPosition(Seats, X,Y)==$L),
+    if
+	IsFloor->
+	    isFreeSight(Seats, X+Xdir,Y+Ydir, Xdir, Ydir, Xmax, Ymax);
+	IsFree ->
+	    true;
+	true ->
+	    false
+    end.
+    
+    
 isFree(Seats, X, Y)->
     Entry = getRoomPosition(Seats, X,Y),
     %% io:fwrite("Check avaliablity for ~p ~p ~c ~n",[X,Y, Entry]),
@@ -197,17 +171,63 @@ isFree(_) ->
     false.
 
 
+getFreeSights(Seats, X,Y)->
+%% (Seats, X,Y, Xdir, Ydir, Xmax, Ymax)->
+    Ymax = length(Seats),
+    Xmax = length(lists:nth(1,Seats)),
+    [
+     (isFreeSight(Seats,X-1,Y, -1, 0, Xmax, Ymax)),
+     (isFreeSight(Seats,X+1,Y, 1, 0, Xmax, Ymax)),
+     (isFreeSight(Seats,X,Y-1, 0, -1, Xmax, Ymax)),
+     (isFreeSight(Seats,X,Y+1, 0, 1, Xmax, Ymax)),
+     (isFreeSight(Seats,X-1,Y-1, -1, -1, Xmax, Ymax)),
+     (isFreeSight(Seats,X-1,Y+1, -1, 1, Xmax, Ymax)),
+     (isFreeSight(Seats,X+1,Y-1, 1, -1, Xmax, Ymax)),
+     (isFreeSight(Seats,X+1,Y+1, 1, 1, Xmax, Ymax))
+    ].
+    
+
 shouldBeOccupied(Seats, X, Y)->
     Entry = getRoomPosition(Seats, X,Y),
     IsSeat = isSeat(Entry),
     
     %% io:fwrite("Is seat:~c:~p~n",[Entry,IsSeat]),
     E2 = getRoomPosition(Seats, X-1,Y),
+    FreeSight = getFreeSights(Seats, X,Y),
+    %% io:fwrite("Is free sight:~p ()~n",[isSeat(Entry) and (boolSum(FreeSight)>=5)]),
     %% io:fwrite("Is free::~p (~c)~n",[isFree(Seats, X-1,Y), E2]),
-    isSeat(Entry) and isFreeSouroundings(Seats,X,Y).
+    isSeat(Entry) and (boolSum(FreeSight)==length(FreeSight)).
+    %% isSeat(Entry) and isFreeSouroundings(Seats,X,Y).
 
 isFreeSouroundings(S, X,Y)->
     isFree(S, X-1,Y) and isFree(S, X+1,Y) and isFree(S, X,Y-1) and isFree(S,X,Y+1) and isFree(S,X-1,Y-1) and isFree(S, X+1, Y-1) and isFree(S, X+1, Y+1) and isFree(S, X-1, Y+1).
+
+getSight(Seats, X,Y, _, _, Xmax, Ymax) when X<1;Y<1 -> $.;
+getSight(Seats, X,Y, _, _, Xmax, Ymax) when X>Xmax;Y>Ymax -> $.;
+getSight(Seats, X, Y, Xdir, Ydir, Xmax, Ymax)->
+    Entry = getRoomPosition(Seats, X,Y),
+    IsFloor = (Entry==$.),
+    if
+	IsFloor->
+	    getSight(Seats, X+Xdir, Y+Ydir, Xdir, Ydir, Xmax, Ymax);
+	true ->
+	    %% io:fwrite("Found element ~c at ~p,~p~n",[Entry, X,Y]),
+	    Entry
+    end.
+
+getSights(Seats, X, Y)->
+    Ymax = length(Seats),
+    Xmax = length(lists:nth(1,Seats)),
+    [
+     (getSight(Seats,X-1,Y,  -1,  0, Xmax, Ymax)),
+     (getSight(Seats,X+1,Y,   1,  0, Xmax, Ymax)),
+     (getSight(Seats,X,Y-1,   0, -1, Xmax, Ymax)),
+     (getSight(Seats,X,Y+1,   0,  1, Xmax, Ymax)),
+     (getSight(Seats,X-1,Y-1,-1, -1, Xmax, Ymax)),
+     (getSight(Seats,X-1,Y+1,-1,  1, Xmax, Ymax)),
+     (getSight(Seats,X+1,Y-1, 1, -1, Xmax, Ymax)),
+     (getSight(Seats,X+1,Y+1, 1,  1, Xmax, Ymax))
+    ].
 
 getSourundings(S, X,Y, Element)->
     [

@@ -1,5 +1,14 @@
 -module(tools).
--export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2]).
+-export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2, countChar/2]).
+
+
+countChar(List, Char)->
+    countChar(List, Char,0).
+countChar([],_,Count)->
+    Count;
+countChar([Char|T],Char,Count) -> countChar(T,Char,Count+1);
+countChar([_|T],Char,Count) -> countChar(T,Char,Count).
+
 
 etime(F,0)-> ok;
 etime(F,N)-> 
