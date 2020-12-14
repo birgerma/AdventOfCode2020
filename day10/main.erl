@@ -37,22 +37,61 @@ sol1()->
 
 %% Correct: 
 sol2()->
-    Fname="example2",
+    Fname="input",
     Data = tools:as_ints(tools:readlines(Fname)),
     Max = lists:max(Data),
     Sorted =  lists:sort([0,Max+3|Data]),
     Memory = dict:new(),
-    %% computeCombinations([], Sorted, 0,15).
     Start = os:timestamp(),
     io:fwrite("Data:~p~n",[Sorted]),
-    %% Res = computeCombinationsFast(Sorted,[],1),
-    %% Res = computeCombinations([], Sorted, 0,15, Memory),
-    Res = computeCombinations(Sorted, Memory),
+    {Res, M} = computeCombinationsMem(Sorted, Memory),
     End = os:timestamp(),
     Time = timer:now_diff(End,Start)/1000000,
     io:fwrite("Result ~p in ~f s",[Res, Time]).
 
 
+
+computeCombinationsMem([A,B|T],Mem) when B-A>3 ->
+    {0,Mem};
+computeCombinationsMem([A,B],Mem) -> 
+    {1,Mem};
+computeCombinationsMem([A,B,C|T],Memory) when C-A=<3 -> 
+    %% io:fwrite("Splitting computation ~n"),
+    {V1,M1} = fetchCombinationsMem([B,C|T],Memory),
+    {V2,M2} = fetchCombinationsMem([A,C|T],M1),
+    {V1+V2,M2};
+computeCombinationsMem([A|T],Memory) ->
+    %% io:fwrite("Pop head:~w~n",[[A|T]]),
+    {V,M} = fetchCombinationsMem(T,Memory),
+    {V,M}.
+%% computeCombinations([A,B,C|T],Memory) ->
+fetchCombinationsMem(T,Memory) ->
+    %% io:fwrite("Fetching combinations~n"),
+    %% Key=lists:sum(T),
+    Key = lists:join(" ", [integer_to_list(I) || I <- T]),
+    Exists = dict:is_key(Key, Memory),
+    if
+	Exists->
+	    Mem=Memory,
+	    Value=dict:fetch(Key, Memory),
+	    %% {Computed,M} = computeCombinationsMem(T, Memory),
+	    io:fwrite("Fetching existing value ~p Key:~p~n",[Value,Key]);
+	true  ->
+	    io:fwrite("Compute new:~p~n",[Key]),
+	    {Value,M} = computeCombinationsMem(T, Memory),
+	    Mem = dict:store(Key, Value, M),
+	    io:fwrite("Is stored:~p~n",[dict:is_key(Key, Mem)])
+    end,
+
+    if
+	Key==813->
+	    io:fwrite("Here we are~n"),
+	    io:fwrite("List:~w~n",[T]),
+	    io:fwrite("Key=~p Value=~p~n",[Key,Value]);
+	true -> ok
+    end,
+
+    {Value, Mem}.
 
 %% computeCombinations(Front,[A|T],Count,0) -> Count;
 %% computeCombinations([],[A|T],Count,It) -> computeCombinations([A],T,Count,It);
@@ -70,7 +109,6 @@ computeCombinations([A,B],_) ->
 %% [ 10, 12, 15, 16, 19, 22 ]
 computeCombinations([A,B,C|T],Memory) when C-A=<3 -> 
     %% io:fwrite("Array check ~n:~w~n~w~n--------",[[A,B|T],[A,B|T]]),
-    
     %% computeCombinations([A,C|T],Memory)+computeCombinations([B,C|T],Memory);
     {V1,M1} = fetchCombinations([A,C|T],Memory),
     {V2,M2} = fetchCombinations([B,C|T],M1),
