@@ -25,8 +25,16 @@ main()->
     
 %% Correct: 
 sol2()->
-    Fname="example",
-    Data = tools:readlines(Fname).
+    Fname="input",
+    Data = tools:readlines(Fname),
+    WayPoint = {10, -1},
+    Pos = {0,0},
+    Dir={1,0},
+    io:fwrite("Data:~p~n",[Data]),
+    {X,Y} = runActions(Data, Pos, WayPoint),
+    abs(X)+abs(Y).
+    
+    
 
 %% Correct: 
 sol1()->
@@ -36,7 +44,28 @@ sol1()->
     {X,Y}=runActions(Data, 1,0,0,0),
     abs(X)+abs(Y).
     
-
+runActions([], {X,Y},  _) -> {X,Y};
+runActions([[Action|StrArg]|T], {X,Y}, {Wx,Wy}) ->
+    %% io:fwrite("Running new actions~n"),
+    io:fwrite("X=~p, Y=~p Wx=~p, Wy=~p ~n ",[X,Y, Wx,Wy]),
+    Arg = list_to_integer(StrArg),
+    if
+	(Action==$R) or (Action==$L)->
+	    io:fwrite("Turn action:~c arg:~p~n",[Action, Arg]),
+	    {NextWx, NextWy, _, _} = runAction(Action, Arg, Wx,Wy, 0, 0),
+	    io:fwrite("Old dir:~p New dir:~p",[{Wx,Wy},{NextWx, NextWy}]),
+	    runActions(T, {X,Y}, {NextWx,NextWy});
+	(Action==$F) ->
+	    io:fwrite("Move ship ~p ~p ~p ~p ~p ~n",[Arg,Wx,Wy, X,Y]),
+	    {XDir, YDir, NextX, NextY} = runAction(Action, Arg, Wx,Wy, X, Y),
+	    io:fwrite("New  ~p ~p ~p ~p ~n",[XDir,YDir, NextX, NextY]),
+	    runActions(T, {NextX,NextY}, {Wx,Wy});
+	true ->
+	    io:fwrite("Move waypoint~n"),
+	    {_, _, NextX, NextY} = runAction(Action, Arg, 0, 0, Wx,Wy),
+	    runActions(T, {X,Y}, {NextX,NextY})	    
+    end.
+    %% runActions(T, {X,Y}, {Wx,Wy}).
 
 runActions([],Xdir, YDir, X,Y)->
     {X,Y};
@@ -66,4 +95,4 @@ runAction(Action, Arg, XDir, YDir, X,Y) when Action==$F ->
     {XDir, YDir, X+Dx, Y+Dy}.
 
 turnRight(Xdir, Ydir, 0)->{Xdir, Ydir};
-turnRight(Xdir, Ydir, Angle) -> turnRight(-Ydir, Xdir, Angle-90).
+turnRight(Xdir, Ydir, Angle) -> io:fwrite("Xdir:~p Ydir~p~n",[Xdir,Ydir]),turnRight(-Ydir, Xdir, Angle-90).
