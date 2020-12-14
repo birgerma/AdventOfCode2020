@@ -1,5 +1,16 @@
 -module(tools).
--export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1]).
+-export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2]).
+
+etime(F,0)-> ok;
+etime(F,N)-> 
+    Res=F(),
+    io:fwrite("Res:~p~n",[Res]),
+    etime(F,N-1).
+etimeMs(F,N)->
+    A=os:timestamp(),
+    etime(F,N),
+    B=os:timestamp(),
+    timer:now_diff(B,A)/N/1000000.
 
 as_ints(Data)->
     as_ints(Data,[]).
