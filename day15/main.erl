@@ -23,10 +23,40 @@ main()->
     io:fwrite("Mean time part1 ~f[ms]~n",[MeanETime2]).
     
     
-%% Correct: 129262
-sol2()->
+initEts(_, [], Index)-> ok;
+initEts(TableName, [H|T], Index)->
+    ets:insert(TableName, {H,Index}),
+    initEts(TableName, T, Index+1).
+
+sol2Fast()->
     %% Fname = "0,3,6",
     Fname = "0,20,7,16,1,18,15",
+    Data = tools:as_ints(tools:split(Fname,",")),
+    [First|InitRev] = lists:reverse(Data),
+    TableName = history,
+    ets:new(TableName, [set, named_table]),
+    initEts(TableName, lists:reverse(InitRev),1),
+    %% InitMem = [{0,1},{3,2}],
+    %% MaxRounds = 2020,
+    MaxRounds = 30000000,
+    %% ets:new(Table, [set, named_table]),
+    %% ets:insert(Table, InitMem),
+    io:fwrite("Start the game~n"),
+    Start1 = os:timestamp(),
+    %% Last= playGame2(First, length(Data)+1, Init, MaxRounds),
+    Start2 = os:timestamp(),
+    Last2 = playGameFast(TableName, First, length(Data)+1, MaxRounds),
+    EndTime = os:timestamp(),
+    Time1 = timer:now_diff(Start2, Start1)/1000000,
+    Time2 = timer:now_diff(EndTime, Start2)/1000000,
+    %% io:fwrite("Solution ~p in ~f sec~n",[Last, Time1]),
+    io:fwrite("Solution ~p in ~f sec~n",[Last2, Time2]).
+
+
+%% Correct: 129262
+sol2()->
+    Fname = "0,3,6",
+    %% Fname = "0,20,7,16,1,18,15",
     %% Fname=Input,
     MaxRounds = 30000000,
     Data = tools:as_ints(tools:split(Fname,",")),
@@ -142,34 +172,34 @@ playGame2(Last, Round, History, MaxRounds)->
     %% io:fwrite("Memory: ~p (~p)~n",[M, length(M)]),
     playGame2(Next, Round+1, [Last|History], MaxRounds).
 
-%% playGameMemoize(Mem, Last, Round, MaxRounds, History, Cycles) when Round>MaxRounds->{Last, Mem};
-%% playGameMemoize(Mem, Last, Round, MaxRounds, History, Cycles)->
-%%     %% Key = lists:join(",",)
-%%     PrevRound = dict:fetch(Last,Mem),
-%%     Next = getNextNumber(Last,Mem),
-%%     %% Next = (Round-1-getNextNumber(Round,M)),%%getNextNumber(Round,M),
-%%     NewMem = addToMemory(Next, Round,Mem),
-%%     io:fwrite("History:~p~n",[History]),
-%%     %% io:fwrite("Round: ~p. Last spoken:~p Next:~p~n",[Round, Last, Next]),
-%%     %% io:fwrite("Memory: ~p (~p)~n",[M, length(M)]),
-%%     Hist = [Next|History],
-%%     %% Key = tools:list_to_string(Hist,","),
-%%     %% Key = string:join( [[X + ""] || X<-Hist], "," ),
-%%     Key = lists:sum(Hist)*length(Hist),
-%%     FoundCycle = dict:is_key(Key, Cycles),
-%%     if
-%% 	FoundCycle->
-%% 	    io:fwrite("Cycle found:~p~n",[Hist]);
-%% 	true->
-%% 	    io:fwrite("Key:~p~n",[Key]),
-%% 	    NewCycles = dict:append_list(Key, Hist, Cycles),
-%% 	    playGameMemoize(NewMem, Next, Round+1, MaxRounds, Hist, NewCycles)
-%%     end.
+
+getNext(Table, Last, Round)->
+    Prev = ets:lookup(Table, Last),
+    if
+	length(Prev)>0->
+	    {Key,Value} = lists:nth(1,Prev),
+	    Round-1-Value;
+	true ->
+	    0
+    end.
+
+playGameFast(Table, Last, Round, MaxRounds) when Round>MaxRounds->Last;
+playGameFast(Table, Last, Round, MaxRounds)->
+    %% M = dict:fetch(Last,Mem),
+    %% Prev = ets:lookup(Table, Last),
+    Next = getNext(Table, Last, Round),
+    %% io:fwrite("Prev:~p~n",[Next]),
+    %% Next = getNextNumber(Last, Round, Mem),
+    %% NewMem = addToMemory(Last, Round-1, Mem),
+    %% io:fwrite("Round: ~p. Last spoken:~p Next:~p~n",[Round, Last, Next]),
+    ets:insert(Table, {Last, Round-1}),
+    %% io:fwrite("Memory: ~p (~p)~n",[M, length(M)]),
+    playGameFast(Table, Next, Round+1, MaxRounds).
+    %% ok.
 
 
 initMemory([],_,Mem)->
     Mem;
 initMemory([H|T],Index,Mem) ->
     initMemory(T,Index+1,dict:store(H,Index,Mem)).
-
 
