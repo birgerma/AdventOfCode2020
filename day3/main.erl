@@ -1,22 +1,37 @@
--module(day3).
+-module(main).
 -compile(export_all).
 
 -import('tools', [readlines/1]).
 
 main()->
-    io:fwrite("Solution part1: ~p~n",[sol1()]),
-    io:fwrite("Solution part2: ~p~n",[sol2()]).
-    
+    Start1 = os:timestamp(),
+    Sol1 = sol1(),
+    Start2 = os:timestamp(),
+    Sol2 = sol2(),
+    EndTime = os:timestamp(),
+    Time1 = timer:now_diff(Start2, Start1)/1000,
+    Time2 = timer:now_diff(EndTime, Start2)/1000,
+    Total = timer:now_diff(EndTime, Start1)/1000,
+
+    io:fwrite("Solution part1 (Time:~f ms): ~p~n", [Time1, Sol1]),
+    io:fwrite("Solution part2 (Time:~f ms): ~p~n", [Time2, Sol2]),
+    io:fwrite("Total execution time: ~f ms~n", [Total]).
 
 %% Correct: 1592662500
 sol2()->
-%% 1,1:55, 3,1:250, 5,1:54, 7,1:55, 1,2:39
     Fname="input",
     Data = tools:readlines(Fname),
     Slopes = [[1,1], [3,1], [5,1], [7,1], [1,2]],
     Traces = computeTraces(Data,Slopes),
     Counts = countCharList(Traces, $#),
     multiply(Counts).
+
+%% Correct: 250
+sol1()->
+    Fname="input",
+    Data = tools:readlines(Fname),
+    Trace = traverse(Data, 3, 1),
+    Count = countChar(Trace, $#).
 
 multiply(List)->
     multiply(List, 1).
@@ -40,13 +55,6 @@ computeTraces(Data, [H|T], Result) ->
     StepY=lists:nth(2,H),
     computeTraces(Data, T, [traverse(Data, StepX, StepY)|Result]).
     
-%% Correct: 250
-sol1()->
-    Fname="input",
-    Data = tools:readlines(Fname),
-    Trace = traverse(Data, 3, 1),
-    Count = countChar(Trace, $#).
-
 countChar(String, Char)->
     countChar(String, Char, 0).
 countChar("",_,Count)->Count;
@@ -59,13 +67,9 @@ traverse(Data, StepX, StepY)->
 traverse([],_,_,_,Trace)->
     lists:reverse(Trace);
 traverse([H|T], Index, StepX, StepY, Trace) ->
-    %% io:fwrite("~p ",[H]),
     Next = getNext(Index+StepX, length(H)),
     Char = lists:nth(Next, H),
-    %% io:fwrite(":~p ~c ~n",[Next, Char]),
     traverse(popList([H|T], StepY), Next, StepX, StepY, [Char|Trace]).
-    %% traverse(popList([H|T], StepY), Next, StepX, StepY, Trace).
-
 
 popList([], _) -> [];
 popList(List, 0) -> List;
@@ -75,4 +79,3 @@ popList([H|T], N) when N>0 ->
 getNext(0, _) -> 1;
 getNext(Next, L) when Next>L->getNext((Next rem L),L);
 getNext(Next, L) ->Next. 
-
