@@ -1,12 +1,23 @@
--module(day2).
+-module(main).
 -compile(export_all).
 
 main()->
     Fname="input1.txt",
     Lines=readlines(Fname),
     Data = formatInput(Lines),
-    io:fwrite("Solution 1: ~p~n",[sol1(Data)]),
-    io:fwrite("Solution 2: ~p~n",[sol2(Data)]).
+
+    Start1 = os:timestamp(),
+    Sol1 = sol1(Data),
+    Start2 = os:timestamp(),
+    Sol2 = sol2(Data),
+    EndTime = os:timestamp(),
+    Time1 = timer:now_diff(Start2, Start1)/1000000,
+    Time2 = timer:now_diff(EndTime, Start2)/1000000,
+    Total = timer:now_diff(EndTime, Start1)/1000000,
+
+    io:fwrite("Solution part1 (Time:~f sec): ~p~n", [Time1, Sol1]),
+    io:fwrite("Solution part2 (Time:~f sec): ~p~n", [Time2, Sol2]),
+    io:fwrite("Total execution time: ~f sec~n", [Total]).
 
 sol1(Data)->
     Validated = lapply(fun(H) -> passwordPolicy(H) end, Data),
