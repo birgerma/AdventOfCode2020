@@ -1,5 +1,12 @@
 -module(tools).
--export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2, list_to_string/2]).
+-export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2, list_to_string/2, boolSum/1]).
+
+boolSum(List)->
+    boolSum(List,0).
+boolSum([],Sum)->Sum;
+boolSum([H|T],Sum) when H -> boolSum(T,Sum+1);
+boolSum([_|T],Sum) -> 
+    boolSum(T,Sum).
 
 list_to_string(List,Sep)->
     list_to_string(List, Sep, "").
