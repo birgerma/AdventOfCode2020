@@ -44,7 +44,9 @@ test1()->
     List = formatInput(Input),
     Final = playGame(List, 100),
     io:fwrite("--final--~nCups:~p~n",[Final]),
-    getFinalScore(Final,[]).
+    Score = getFinalScore(Final,[]),
+    io:fwrite("Final score:~p~n",[Score]),
+    io:fwrite("Is correct:~p~n",[Score==67384529]).
     %% Data = tools:readlines(Fname).
     
 
@@ -60,28 +62,28 @@ getFinalScore([H|T],Rest) ->
     getFinalScore(T,[H|Rest]).
 
 playGame(List,NRounds)->
-    playGame(List, [], 1, lists:min(List), lists:max(List),NRounds).
+    playGame(List, 1, lists:min(List), lists:max(List),NRounds).
 
 
-playGame(List, [], Move, MinVal,MaxVal, MaxMove) when Move>MaxMove->
+playGame(List,  Move, MinVal,MaxVal, MaxMove) when Move>MaxMove->
     io:fwrite("Game is done~n"),
     List;
-playGame([],Stack, Move, MinVal,MaxVal,MaxMove) ->
-    io:fwrite("Wrap around~n"),
-    playGame(lists:reverse(Stack),[], Move, MinVal,MaxVal, MaxMove);
-playGame([H,A,B,C|T],Stack, Move, MinVal, MaxVal, MaxMove) ->
+%% playGame([], Move, MinVal,MaxVal,MaxMove) ->
+%%     io:fwrite("Wrap around~n"),
+%%     playGame(lists:reverse(Stack),[], Move, MinVal,MaxVal, MaxMove);
+playGame([H,A,B,C|T], Move, MinVal, MaxVal, MaxMove) ->
     Dest = getNextDest(H-1,[A,B,C],MinVal,MaxVal),
     io:fwrite("-- move ~p --~n",[Move]),
-    io:fwrite("cups: ~p(~p) ~p ~p ~p ~p~n",[lists:reverse(Stack),H,A,B,C,T]),
+    io:fwrite("cups: (~p) ~p ~p ~p ~p~n",[H,A,B,C,T]),
     io:fwrite("pick up: ~p,~p,~p~n",[A,B,C]),
     io:fwrite("destination: ~p~n",[Dest]),
-    NewList = insertList([A,B,C],Dest,[H|T],Stack,[]),
-    playGame(NewList,Stack, Move+1, MinVal, MaxVal, MaxMove).
+    NewList = insertList([A,B,C],Dest,[H|T],[]),
+    playGame(NewList, Move+1, MinVal, MaxVal, MaxMove).
 
 
-insertList(List, Dest, [],Stack,Result) ->
-    io:fwrite("Wrap around~n");
-insertList(List, Dest, [H|T],Stack,Result) when H==Dest->
+%% insertList(List, Dest, [],Result) ->
+%%     io:fwrite("Wrap around~n");
+insertList(List, Dest, [H|T],Result) when H==Dest->
     %% io:fwrite("We should insert here!~n"),
     %% io:fwrite("Result:~p~n",[Result]),
     %% io:fwrite("Head:~p~n",[H]),
@@ -91,10 +93,9 @@ insertList(List, Dest, [H|T],Stack,Result) when H==Dest->
     New = Front++List++T++[Current],
     %% io:fwrite("New list:~p~n",[New]),
     New;
-
-insertList(List, Dest, [H|T],Stack,Result) ->
+insertList(List, Dest, [H|T],Result) ->
     %% io:fwrite("Continue looking for ~p~n",[Dest]),
-    insertList(List, Dest, T,Stack,[H|Result]).
+    insertList(List, Dest, T,[H|Result]).
 
     
 getNextDest(Next, Taken, MinVal,MaxVal) when Next<MinVal->
