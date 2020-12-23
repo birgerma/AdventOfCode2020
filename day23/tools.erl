@@ -1,5 +1,15 @@
 -module(tools).
--export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2, list_to_string/2, boolSum/1, transpose/1]).
+-export([readlines/1, split/2, countElements/2, binList2StrList/1, as_ints/1, etimeMs/2, list_to_string/2, boolSum/1, transpose/1, print/1, print/2, print/3]).
+
+print(String)->
+    print(String,true).
+print(String,true)->
+    io:fwrite(String);
+print(String,false)-> ok;
+print(String, Args)->
+    print(String,Args,true).
+print(String, Args, false)-> ok;
+print(String, Args, true)-> io:fwrite(String,Args).
 
 transpose([[]|_]) -> [];
 transpose(M) ->
