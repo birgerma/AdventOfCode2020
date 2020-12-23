@@ -48,6 +48,16 @@ test1()->
     io:fwrite("Final score:~p~n",[Score]),
     io:fwrite("Is correct:~p~n",[Score==67384529]).
     %% Data = tools:readlines(Fname).
+
+test2()->
+    Input="389125467",
+    List = formatInput(Input),
+    Final = playGame(List, 100000),
+    io:fwrite("--final--~nCups:~p~n",[Final]),
+    Score = getFinalScore(Final,[]),
+    io:fwrite("Final score:~p~n",[Score]),
+    io:fwrite("Is correct:~p~n",[Score==67384529]).
+    %% Data = tools:readlines(Fname).
     
 
 int_list_to_int([],Val)->Val;
@@ -62,23 +72,36 @@ getFinalScore([H|T],Rest) ->
     getFinalScore(T,[H|Rest]).
 
 playGame(List,NRounds)->
-    playGame(List, 1, lists:min(List), lists:max(List),NRounds).
+    playGame(List, dict:new(), 1, lists:min(List), lists:max(List),NRounds).
 
 
-playGame(List,  Move, MinVal,MaxVal, MaxMove) when Move>MaxMove->
+playGame(List,  Mem, Move, MinVal,MaxVal, MaxMove) when Move>MaxMove->
     io:fwrite("Game is done~n"),
     List;
 %% playGame([], Move, MinVal,MaxVal,MaxMove) ->
 %%     io:fwrite("Wrap around~n"),
 %%     playGame(lists:reverse(Stack),[], Move, MinVal,MaxVal, MaxMove);
-playGame([H,A,B,C|T], Move, MinVal, MaxVal, MaxMove) ->
-    Dest = getNextDest(H-1,[A,B,C],MinVal,MaxVal),
-    io:fwrite("-- move ~p --~n",[Move]),
-    io:fwrite("cups: (~p) ~p ~p ~p ~p~n",[H,A,B,C,T]),
-    io:fwrite("pick up: ~p,~p,~p~n",[A,B,C]),
-    io:fwrite("destination: ~p~n",[Dest]),
-    NewList = insertList([A,B,C],Dest,[H|T],[]),
-    playGame(NewList, Move+1, MinVal, MaxVal, MaxMove).
+playGame([H,A,B,C|T], Mem, Move, MinVal, MaxVal, MaxMove) ->
+    Debug = false,
+    Key = [H,A,B,C|T],
+    Exists = dict:is_key(Key,Mem),
+    if
+	Exists ->
+	    tools:print("USING MEMORY!!!~n",Debug),
+	    Dest = -1,
+	    NewList = dict:fetch(Key, Mem),
+	    NewMem = Mem;	
+	true ->
+	    Dest = getNextDest(H-1,[A,B,C],MinVal,MaxVal),
+	    NewList = insertList([A,B,C],Dest,[H|T],[]),
+	    NewMem = dict:store(Key, NewList, Mem)
+    end,
+    tools:print("-- move ~p --~n",[Move],Debug),
+    tools:print("cups: (~p) ~p ~p ~p ~p~n",[H,A,B,C,T],Debug),
+    tools:print("pick up: ~p,~p,~p~n",[A,B,C],Debug),
+    tools:print("destination: ~p~n",[Dest],Debug),
+
+    playGame(NewList, NewMem, Move+1, MinVal, MaxVal, MaxMove).
 
 
 %% insertList(List, Dest, [],Result) ->
