@@ -23,21 +23,41 @@ main()->
     %% io:fwrite("Mean time part1 ~f[ms]~n",[MeanETime2]).
     
 
-%% Correct: 
+%% Correct: 565615814504
 sol2()->
-    ok.
-%% sol2()->
-%%     Input="394618527",
-%%     List = formatInput(Input),
-%%     AdvancedList = createAdvancedList(List,1000000),
-%%     Final = playGame(AdvancedList, 10000000),
-%%     Score = advancedScore(Final),
+    Input="394618527",
+    TableName = cups,
+    List = formatInput(Input),
+    AdvancedList = createAdvancedList(List,1000000),
+
+
+    initCupsTable(TableName),
+    addListToCupsTable(AdvancedList,-1),
+    %% io:fwrite("Init numbers:~p~n",[getNext(3,20)]),
+
+    Current = 3,
+    playGame(Current, lists:min(AdvancedList), lists:max(AdvancedList),10000000),
+    Score = advancedScore().
+
+    %% List = formatInput(Input),
+    %% AdvancedList = createAdvancedList(List,1000000),
+    %% Current = 3,
+    %% Final = playGame(Current, lists:min(List), lists:max(List),100).
+    %% Score = advancedScore(Final),
 %%     io:fwrite("Final score:~p~n",[Score]),
 %%     io:fwrite("Is correct:~p~n",[Score==67384529]).
 
 %% Correct: 
 sol1()->
-    Input="394618527".
+    Input="394618527",
+    TableName = cups,
+    initCupsTable(TableName),
+    List = formatInput(Input),
+    addListToCupsTable(List,-1),
+    %% Final = playGame(List, 1).
+    playGame(3, lists:min(List), lists:max(List),100),
+    Score = getFinalScore(1,[]).
+
     %% List = formatInput(Input),
     %% Final = playGame(List, 100),
     %% io:fwrite("--final--~nCups:~p~n",[Final]),
@@ -60,8 +80,25 @@ test1()->
     %% io:fwrite("Is correct:~p~n",[Score==67384529]).
     %% Data = tools:readlines(Fname).
 
-%% test2()->
-%%     Input="389125467",
+test2()->
+    Input="389125467",
+    TableName = cups,
+    List = formatInput(Input),
+    AdvancedList = createAdvancedList(List,1000000),
+
+
+    initCupsTable(TableName),
+    addListToCupsTable(AdvancedList,-1),
+    %% io:fwrite("Init numbers:~p~n",[getNext(3,20)]),
+
+    Current = 3,
+    playGame(Current, lists:min(AdvancedList), lists:max(AdvancedList),10000000),
+    Score = advancedScore().
+    %% FirstTen = getNext(1,10),
+    %% io:fwrite("First numbers:~p~n",[FirstTen]).
+
+
+
 %%     List = formatInput(Input),
 %%     AdvancedList = createAdvancedList(List,100000), %%10 000 works, not higher
 %%     %% length(AdvancedList).
@@ -79,18 +116,23 @@ initCupsTable(TableName)->
     ets:new(TableName,[set, named_table]).
 
 setNextCup(Cup, Next)->
-    Debug = false,
+    Debug = true,
     Name = cups,
-    tools:print("Set ~p->~p~n",[Cup,Next],Debug),
+    %% tools:print("Set ~p->~p~n",[Cup,Next],Debug),
     ets:insert(Name, {Cup, Next}).
 
 getNextCup(Cup)->
     Name = cups,
     ets:lookup(Name, Cup).
 
-advancedScore([A,B,C|T]) when A==1->
-    B*C;
-advancedScore([H|T]) -> advancedScore(T).
+advancedScore() ->
+    [A,B] = getNext(1,2),
+    io:fwrite("Final numbers:~p ~p~n",[A,B]),
+    A*B.
+    
+%% advancedScore([A,B,C|T]) when A==1->
+%%     B*C;
+%% advancedScore([H|T]) -> advancedScore(T).
 
 createAdvancedList(List,Max)->
     CurrentMax = lists:max(List),
@@ -152,19 +194,21 @@ printGame(Current, Last)->
 playGame(Current, MinVal, MaxVal, MaxRounds) ->
     playGame(Current,1, MinVal, MaxVal, MaxRounds).
 playGame(Current, Round, MinVal, MaxVal, MaxRounds) when Round>MaxRounds->
-    io:fwrite("-- final --~n"),
-    printGame(Current);
+    Debug=false,
+    tools:print("-- final --~n",Debug),
+    printGame(Current,Debug);
 playGame(Current, Round,MinVal, MaxVal, MaxRounds)->
-    Debug = false,
+    Debug = true,
     %% io:fwrite("Current: ~p~n",[Current]),
     [A,B,C] = getNext(Current, 3, []),
     %% Next = getNext(C),
     Dest = getNextDest(Current-1,[A,B,C],MinVal,MaxVal),
 
-    tools:print("-- move ~p --~n",[Round],Debug),
-    printGame(Current,Debug),
-    tools:print("pick up: ~p~n",[[A,B,C]],Debug),
-    tools:print("destination: ~p~n~n",[Dest],Debug),
+    %% tools:print("-- move ~p --~n",[Round],true),
+    %% tools:print("First numbers: (~p) ~p~n~n",[Current,getNext(Current,10)]),
+    %% %% printGame(Current,Debug),
+    %% tools:print("pick up: ~w~n",[[A,B,C]],Debug),
+    %% tools:print("destination: ~p~n~n",[Dest],Debug),
 
     move(Current,[A,B,C], Dest),
     Next = getNext(Current),
