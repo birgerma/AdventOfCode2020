@@ -17,7 +17,7 @@ main()->
     io:fwrite("Solution part2 (Time:~f ms): ~p~n", [Time2, Sol2]),
     io:fwrite("Total execution time: ~f ms~n", [Total]).
     
-%% Correct: 
+%% Correct: 2243
 sol2()->
     Fname="input",
     Data = tools:readlines(Fname),
@@ -58,7 +58,7 @@ printTilePos([{Id, [{X,Y},Tile]}|T])->
     io:fwrite("Tile:(X=_ Y=~p)~n",[Y]),
     printTilePos(T).
     
-%% Correct: 
+%% Correct: 11788777383197
 sol1()->
     Fname="input",
     Data = tools:readlines(Fname),
